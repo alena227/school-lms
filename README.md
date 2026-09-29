@@ -6,7 +6,7 @@
 
 - Next.js 16 (App Router) + TypeScript + Tailwind CSS
 - Prisma ORM 6.19.3 (⚠️ не обновлять до 7/8 — там другая конфигурация datasource, потребует переделки)
-- SQLite локально, PostgreSQL (Neon, бесплатный тариф) в проде
+- PostgreSQL (Neon, бесплатный тариф) — одна база и для локальной разработки, и для продакшена
 - Своя авторизация: bcrypt + JWT в httpOnly cookie, без сторонних сервисов
 - Файлы: локально — `public/uploads/`, в проде — Cloudflare R2 (S3-совместимое, 10GB бесплатно)
 - Видео — только embed через YouTube IFrame API, видео нигде не скачивается и не хранится
@@ -15,9 +15,9 @@
 
 ```bash
 npm install
-cp .env.example .env      # заполнить JWT_SECRET, при желании поменять пароль админа
-npx prisma migrate dev
-npm run seed               # создаёт 3 предмета и первого админа
+cp .env.example .env      # заполнить DATABASE_URL (строка подключения Neon) и JWT_SECRET
+npx prisma migrate deploy
+npm run seed               # создаёт 3 предмета и первого админа (если их ещё нет)
 npm run dev
 ```
 
@@ -27,22 +27,14 @@ npm run dev
 
 Ниже — точные шаги. Везде, где нужно завести аккаунт в стороннем сервисе, это нужно сделать самостоятельно (я не могу зарегистрировать аккаунт за вас) — просто следуйте шагам по порядку.
 
-### 1. База данных — Neon (PostgreSQL)
+### 1. База данных — Neon (PostgreSQL) ✅ готово
 
-1. Зарегистрироваться на [neon.tech](https://neon.tech), создать новый проект (регион — любой ближе к пользователям).
-2. Скопировать **Connection string** (вариант "Pooled connection", он понадобится для Vercel/serverless) — выглядит как `postgresql://user:pass@host/dbname?sslmode=require`.
-3. В `prisma/schema.prisma` поменять провайдер датасорса:
-   ```prisma
-   datasource db {
-     provider = "postgresql"
-     url      = env("DATABASE_URL")
-   }
-   ```
-4. Локально (или из CI) прогнать миграции на новую БД:
-   ```bash
-   DATABASE_URL="<connection string из Neon>" npx prisma migrate deploy
-   DATABASE_URL="<connection string из Neon>" npm run seed
-   ```
+Проект уже подключён к Neon (`prisma/schema.prisma` использует `provider = "postgresql"`, миграции применены, таблицы засеяны тремя предметами и админом). При необходимости пересоздать базу с нуля:
+
+```bash
+DATABASE_URL="<connection string из Neon>" npx prisma migrate deploy
+DATABASE_URL="<connection string из Neon>" npm run seed
+```
 
 ### 2. Файловое хранилище — Cloudflare R2
 
