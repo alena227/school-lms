@@ -1,36 +1,110 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Учебный сайт (мини-LMS)
 
-## Getting Started
+Закрытый сайт для трёх предметов (русский язык, профильная математика, физика). Админ создаёт логины ученикам и публикует уроки (видео с YouTube + файлы классной/домашней работы), ученики смотрят видео и сдают домашнее задание (текст + файлы любого формата). Регистрации нет — попасть на сайт можно только по логину/паролю, выданному админом.
 
-First, run the development server:
+## Стек
+
+- Next.js 16 (App Router) + TypeScript + Tailwind CSS
+- Prisma ORM 6.19.3 (⚠️ не обновлять до 7/8 — там другая конфигурация datasource, потребует переделки)
+- SQLite локально, PostgreSQL (Neon, бесплатный тариф) в проде
+- Своя авторизация: bcrypt + JWT в httpOnly cookie, без сторонних сервисов
+- Файлы: локально — `public/uploads/`, в проде — Cloudflare R2 (S3-совместимое, 10GB бесплатно)
+- Видео — только embed через YouTube IFrame API, видео нигде не скачивается и не хранится
+
+## Локальный запуск
 
 ```bash
+npm install
+cp .env.example .env      # заполнить JWT_SECRET, при желании поменять пароль админа
+npx prisma migrate dev
+npm run seed               # создаёт 3 предмета и первого админа
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Открыть http://localhost:3000, войти под логином/паролем из `.env` (`ADMIN_USERNAME` / `ADMIN_PASSWORD`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Деплой в продакшен (бесплатно)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Ниже — точные шаги. Везде, где нужно завести аккаунт в стороннем сервисе, это нужно сделать самостоятельно (я не могу зарегистрировать аккаунт за вас) — просто следуйте шагам по порядку.
 
-## Learn More
+### 1. База данных — Neon (PostgreSQL)
 
-To learn more about Next.js, take a look at the following resources:
+1. Зарегистрироваться на [neon.tech](https://neon.tech), создать новый проект (регион — любой ближе к пользователям).
+2. Скопировать **Connection string** (вариант "Pooled connection", он понадобится для Vercel/serverless) — выглядит как `postgresql://user:pass@host/dbname?sslmode=require`.
+3. В `prisma/schema.prisma` поменять провайдер датасорса:
+   ```prisma
+   datasource db {
+     provider = "postgresql"
+     url      = env("DATABASE_URL")
+   }
+   ```
+4. Локально (или из CI) прогнать миграции на новую БД:
+   ```bash
+   DATABASE_URL="<connection string из Neon>" npx prisma migrate deploy
+   DATABASE_URL="<connection string из Neon>" npm run seed
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 2. Файловое хранилище — Cloudflare R2
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Зарегистрироваться на [cloudflare.com](https://cloudflare.com), в разделе **R2** создать бакет (например `school-lms-files`).
+2. В настройках бакета включить публичный доступ (Public Access → Allow) и скопировать публичный URL бакета (или подключить свой домен) — это будет `R2_PUBLIC_URL`.
+3. Создать API-токен R2 (**Manage R2 API Tokens** → Create API Token, права Object Read & Write) — получите `Access Key ID` и `Secret Access Key`.
+4. `R2_ACCOUNT_ID` — виден в правом верхнем углу дашборда Cloudflare (или в URL аккаунта).
 
-## Deploy on Vercel
+   **Важно про приватность файлов:** в локальном режиме (`STORAGE_DRIVER=local`) файлы отдаются через `/uploads/*` и защищены той же авторизацией, что и весь сайт. В режиме R2 (`STORAGE_DRIVER=r2`) публичный URL бакета ведёт напрямую в R2, минуя авторизацию сайта — то есть тот, у кого есть прямая ссылка на файл (длинный случайный адрес), может его открыть без логина. Для закрытого круга из ~30 учеников это стандартный компромисс бесплatных бакетов; если нужна более строгая защита файлов, потребуется отдельная доработка (подписанные ссылки на скачивание).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 3. Репозиторий — GitHub
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+git add -A
+git commit -m "Готово к деплою"
+```
+
+Создать пустой репозиторий на [github.com/new](https://github.com/new), затем:
+
+```bash
+git remote add origin <URL вашего репозитория>
+git push -u origin main
+```
+
+### 4. Хостинг — Vercel
+
+1. Зарегистрироваться на [vercel.com](https://vercel.com) (можно через GitHub), **Add New → Project**, выбрать только что созданный репозиторий.
+2. В настройках проекта → **Environment Variables** добавить:
+
+   | Переменная | Значение |
+   |---|---|
+   | `DATABASE_URL` | connection string из Neon |
+   | `JWT_SECRET` | длинная случайная строка (например `openssl rand -hex 32`) |
+   | `ADMIN_USERNAME` | логин админа (используется только при `npm run seed`) |
+   | `ADMIN_PASSWORD` | пароль админа (используется только при `npm run seed`) |
+   | `ADMIN_FULLNAME` | ФИО админа |
+   | `STORAGE_DRIVER` | `r2` |
+   | `R2_ACCOUNT_ID` | из Cloudflare |
+   | `R2_ACCESS_KEY_ID` | из Cloudflare |
+   | `R2_SECRET_ACCESS_KEY` | из Cloudflare |
+   | `R2_BUCKET_NAME` | имя бакета |
+   | `R2_PUBLIC_URL` | публичный URL бакета |
+
+3. Нажать **Deploy**. После первого успешного деплоя зайти на выданный домен и войти под `ADMIN_USERNAME`/`ADMIN_PASSWORD`.
+
+### 5. После деплоя
+
+- Сменить пароль админа: пока в приложении нет формы смены пароля — самый быстрый способ обновить его сейчас: изменить `ADMIN_PASSWORD` в Neon вручную через SQL, либо попросить создать соответствующую функцию отдельно.
+- Заходить в **Админ → Ученики**, чтобы создавать логины школьникам (пароль генерируется автоматически и показывается один раз — его нужно сразу передать ученику, он больше нигде не сохраняется).
+- Заходить в **Админ → Уроки**, чтобы добавлять уроки (номер, тема, ссылка на YouTube, файлы классной/домашней работы).
+
+## Структура проекта
+
+```
+prisma/schema.prisma        # модели данных
+prisma/seed.ts               # сидинг предметов и первого админа
+src/lib/db.ts                 # Prisma client
+src/lib/auth.ts               # хэш пароля, JWT-сессии
+src/lib/storage.ts            # загрузка файлов (local / R2)
+src/proxy.ts                  # защита маршрутов по роли (аналог middleware в Next 16)
+src/app/login/                # страница входа
+src/app/(student)/            # предметы → уроки → страница урока с видео и формой сдачи дз
+src/app/admin/                # управление учениками, уроками, просмотр сдач
+src/app/api/                  # API-роуты
+```

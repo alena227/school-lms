@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STUDENT
+}
+
+enum FileKind {
+  CLASSWORK
+  HOMEWORK
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  fullName     String
+  role         Role     @default(STUDENT)
+  createdAt    DateTime @default(now())
+
+  submissions    Submission[]
+  videoProgress  VideoProgress[]
+}
+
+model Subject {
+  id      String   @id @default(cuid())
+  name    String   @unique
+  order   Int      @default(0)
+  lessons Lesson[]
+}
+
+model Lesson {
+  id        String   @id @default(cuid())
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  number    Int
+  title     String
+  youtubeUrl String
+  createdAt DateTime @default(now())
+
+  files         LessonFile[]
+  submissions   Submission[]
+  videoProgress VideoProgress[]
+
+  @@unique([subjectId, number])
+}
+
+model LessonFile {
+  id       String   @id @default(cuid())
+  lessonId String
+  lesson   Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  kind     FileKind
+  url      String
+  fileName String
+}
+
+model Submission {
+  id          String   @id @default(cuid())
+  lessonId    String
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  studentId   String
+  student     User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  text        String   @default("")
+  submittedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  files SubmissionFile[]
+
+  @@unique([lessonId, studentId])
+}
+
+model SubmissionFile {
+  id           String     @id @default(cuid())
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  url          String
+  fileName     String
+  mimeType     String
+}
+
+model VideoProgress {
+  id        String   @id @default(cuid())
+  lessonId  String
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  watched   Boolean  @default(false)
+  watchedAt DateTime?
+
+  @@unique([lessonId, studentId])
+}
