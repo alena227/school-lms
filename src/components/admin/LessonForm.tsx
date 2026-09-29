@@ -171,7 +171,7 @@ export default function LessonForm({
           <select
             value={subjectId}
             onChange={(e) => setSubjectId(e.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
             required
           >
             {subjects.map((s) => (
@@ -192,7 +192,7 @@ export default function LessonForm({
             type="number"
             value={number}
             onChange={(e) => setNumber(e.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
             required
           />
         </div>
@@ -203,7 +203,7 @@ export default function LessonForm({
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
             required
           />
         </div>
@@ -217,7 +217,7 @@ export default function LessonForm({
           value={youtubeUrl}
           onChange={(e) => setYoutubeUrl(e.target.value)}
           placeholder="https://www.youtube.com/watch?v=..."
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
           required
         />
       </div>
@@ -290,7 +290,7 @@ function FileSection({
         type="file"
         multiple
         onChange={onAdd}
-        className="mt-2 text-sm"
+        className="mt-2 text-sm text-slate-900"
         disabled={uploading}
       />
       {uploading && (

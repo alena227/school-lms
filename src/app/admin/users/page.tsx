@@ -83,7 +83,7 @@ export default function AdminUsersPage() {
           <input
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
             placeholder="Иванов Иван"
             required
           />
@@ -95,7 +95,7 @@ export default function AdminUsersPage() {
           <input
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
             placeholder="ivanov_i"
             required
           />

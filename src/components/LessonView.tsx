@@ -185,7 +185,7 @@ export default function LessonView({
           onChange={(e) => setText(e.target.value)}
           rows={8}
           placeholder="Напишите ответ здесь..."
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
         />
 
         <div className="space-y-2">
@@ -218,7 +218,7 @@ export default function LessonView({
           multiple
           onChange={handleFileAdd}
           disabled={uploading}
-          className="text-sm"
+          className="text-sm text-slate-900"
         />
         {uploading && (
           <p className="text-xs text-slate-500">Загрузка файла...</p>
