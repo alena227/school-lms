@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { uploadFile, type UploadedFile } from "@/lib/upload-client";
 
+const MAX_SUBMISSION_FILES = 5;
+
 type LessonFile = { id: string; kind: "CLASSWORK" | "HOMEWORK"; url: string; fileName: string };
 type SubmissionFile = { id: string; url: string; fileName: string; mimeType: string };
 
@@ -100,6 +102,12 @@ export default function LessonView({
     const inputFiles = Array.from(e.target.files ?? []);
     e.target.value = "";
     if (inputFiles.length === 0) return;
+
+    if (files.length + inputFiles.length > MAX_SUBMISSION_FILES) {
+      setError(`Можно приложить не более ${MAX_SUBMISSION_FILES} файлов`);
+      return;
+    }
+
     setUploading(true);
     setError("");
     try {
@@ -213,15 +221,25 @@ export default function LessonView({
           ))}
         </div>
 
-        <input
-          type="file"
-          multiple
-          onChange={handleFileAdd}
-          disabled={uploading}
-          className="text-sm text-slate-900"
-        />
+        <p className="text-xs text-slate-400">
+          Файлов: {files.length}/{MAX_SUBMISSION_FILES}
+        </p>
+        {files.length < MAX_SUBMISSION_FILES && (
+          <input
+            type="file"
+            multiple
+            onChange={handleFileAdd}
+            disabled={uploading}
+            className="text-sm text-slate-900"
+          />
+        )}
         {uploading && (
           <p className="text-xs text-slate-500">Загрузка файла...</p>
+        )}
+        {files.length >= MAX_SUBMISSION_FILES && (
+          <p className="text-xs text-slate-500">
+            Достигнут лимит в {MAX_SUBMISSION_FILES} файлов
+          </p>
         )}
 
         {error && <p className="text-sm text-red-600">{error}</p>}

@@ -11,6 +11,8 @@ type LessonFile = {
   url: string;
   fileName: string;
 };
+const MAX_FILES_PER_SECTION = 5;
+
 type InitialLesson = {
   id: string;
   subjectId: string;
@@ -66,6 +68,15 @@ export default function LessonForm({
     const inputFiles = Array.from(e.target.files ?? []);
     e.target.value = "";
     if (inputFiles.length === 0) return;
+
+    const currentCount =
+      kind === "CLASSWORK" ? classworkFiles.length : homeworkFiles.length;
+    if (currentCount + inputFiles.length > MAX_FILES_PER_SECTION) {
+      setError(
+        `Можно загрузить не более ${MAX_FILES_PER_SECTION} файлов в один раздел`
+      );
+      return;
+    }
 
     setUploading(kind);
     setError("");
@@ -264,10 +275,15 @@ function FileSection({
   onAdd: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemove: (f: LessonFile) => void;
 }) {
+  const atLimit = files.length >= MAX_FILES_PER_SECTION;
+
   return (
     <div>
       <label className="block text-sm font-medium text-slate-700 mb-1">
-        {label}
+        {label}{" "}
+        <span className="font-normal text-slate-400">
+          ({files.length}/{MAX_FILES_PER_SECTION})
+        </span>
       </label>
       <div className="space-y-2">
         {files.map((f, i) => (
@@ -286,15 +302,22 @@ function FileSection({
           </div>
         ))}
       </div>
-      <input
-        type="file"
-        multiple
-        onChange={onAdd}
-        className="mt-2 text-sm text-slate-900"
-        disabled={uploading}
-      />
+      {!atLimit && (
+        <input
+          type="file"
+          multiple
+          onChange={onAdd}
+          className="mt-2 text-sm text-slate-900"
+          disabled={uploading}
+        />
+      )}
       {uploading && (
         <p className="text-xs text-slate-500 mt-1">Загрузка файла...</p>
+      )}
+      {atLimit && (
+        <p className="text-xs text-slate-500 mt-1">
+          Достигнут лимит в {MAX_FILES_PER_SECTION} файлов
+        </p>
       )}
     </div>
   );

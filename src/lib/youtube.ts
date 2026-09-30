@@ -10,6 +10,8 @@ export function extractYoutubeId(url: string): string | null {
         return u.pathname.replace("/embed/", "");
       if (u.pathname.startsWith("/shorts/"))
         return u.pathname.replace("/shorts/", "");
+      if (u.pathname.startsWith("/live/"))
+        return u.pathname.replace("/live/", "");
     }
     return null;
   } catch {
