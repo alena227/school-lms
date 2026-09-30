@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { extractYoutubeId } from "@/lib/youtube";
+import { extractVideo } from "@/lib/video";
 
 export async function GET(
   request: NextRequest,
@@ -38,9 +38,9 @@ export async function PUT(
       { status: 400 }
     );
   }
-  if (!extractYoutubeId(youtubeUrl)) {
+  if (!extractVideo(youtubeUrl)) {
     return NextResponse.json(
-      { error: "Не удалось распознать ссылку на YouTube" },
+      { error: "Не удалось распознать ссылку на видео (поддерживаются YouTube и Rutube)" },
       { status: 400 }
     );
   }

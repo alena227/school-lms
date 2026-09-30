@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
-import { extractYoutubeId } from "@/lib/youtube";
+import { extractVideo } from "@/lib/video";
 import LessonView from "@/components/LessonView";
 
 export default async function LessonPage({
@@ -28,7 +28,7 @@ export default async function LessonPage({
 
   if (!lesson) notFound();
 
-  const youtubeId = extractYoutubeId(lesson.youtubeUrl);
+  const video = extractVideo(lesson.youtubeUrl);
   const submission = lesson.submissions[0];
 
   return (
@@ -43,12 +43,12 @@ export default async function LessonPage({
         Урок {lesson.number}: {lesson.title}
       </h1>
 
-      {!youtubeId ? (
+      {!video ? (
         <p className="text-sm text-red-600">Не удалось загрузить видео.</p>
       ) : (
         <LessonView
           lessonId={lesson.id}
-          youtubeId={youtubeId}
+          video={video}
           classworkFiles={lesson.files.filter((f) => f.kind === "CLASSWORK")}
           homeworkFiles={lesson.files.filter((f) => f.kind === "HOMEWORK")}
           initialWatched={lesson.videoProgress[0]?.watched ?? false}

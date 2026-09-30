@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { uploadFile, type UploadedFile } from "@/lib/upload-client";
+import type { VideoInfo } from "@/lib/video";
 
 const MAX_SUBMISSION_FILES = 5;
 
@@ -27,7 +28,7 @@ declare global {
 
 export default function LessonView({
   lessonId,
-  youtubeId,
+  video,
   classworkFiles,
   homeworkFiles,
   initialWatched,
@@ -35,7 +36,7 @@ export default function LessonView({
   initialFiles,
 }: {
   lessonId: string;
-  youtubeId: string;
+  video: VideoInfo;
   classworkFiles: LessonFile[];
   homeworkFiles: LessonFile[];
   initialWatched: boolean;
@@ -67,12 +68,14 @@ export default function LessonView({
   }
 
   useEffect(() => {
+    if (video.platform !== "youtube") return;
     const playerId = `yt-player-${lessonId}`;
+    const videoId = video.id;
 
     function initPlayer() {
       if (!window.YT) return;
       new window.YT.Player(playerId, {
-        videoId: youtubeId,
+        videoId,
         events: {
           onStateChange: (e) => {
             if (window.YT?.PlayerState && e.data === window.YT.PlayerState.ENDED) {
@@ -96,7 +99,7 @@ export default function LessonView({
       window.onYouTubeIframeAPIReady = initPlayer;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lessonId, youtubeId]);
+  }, [lessonId, video]);
 
   async function handleFileAdd(e: React.ChangeEvent<HTMLInputElement>) {
     const inputFiles = Array.from(e.target.files ?? []);
@@ -159,7 +162,17 @@ export default function LessonView({
   return (
     <div className="space-y-8">
       <div className="aspect-video bg-black rounded-xl overflow-hidden">
-        <div id={`yt-player-${lessonId}`} className="w-full h-full" />
+        {video.platform === "youtube" ? (
+          <div id={`yt-player-${lessonId}`} className="w-full h-full" />
+        ) : (
+          <iframe
+            src={video.embedUrl}
+            className="w-full h-full"
+            allow="clipboard-write; autoplay; fullscreen"
+            allowFullScreen
+            frameBorder="0"
+          />
+        )}
       </div>
 
       <div className="flex items-center gap-3">

@@ -224,12 +224,12 @@ export default function LessonForm({
 
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">
-          Ссылка на видео (YouTube)
+          Ссылка на видео (YouTube или Rutube)
         </label>
         <input
           value={youtubeUrl}
           onChange={(e) => setYoutubeUrl(e.target.value)}
-          placeholder="https://www.youtube.com/watch?v=..."
+          placeholder="https://www.youtube.com/watch?v=... или https://rutube.ru/video/..."
           className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
           required
         />
