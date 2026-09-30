@@ -206,7 +206,7 @@ export default function LessonView({
                 href={f.url}
                 target="_blank"
                 rel="noreferrer"
-                className="truncate hover:underline"
+                className="truncate text-slate-900 hover:underline"
               >
                 {f.fileName}
               </a>
@@ -269,7 +269,7 @@ function FileList({ label, files }: { label: string; files: LessonFile[] }) {
             href={f.url}
             target="_blank"
             rel="noreferrer"
-            className="block bg-white border border-slate-200 rounded-md px-3 py-2 text-sm hover:border-slate-400"
+            className="block bg-white border border-slate-200 rounded-md px-3 py-2 text-sm text-slate-900 hover:border-slate-400 hover:underline"
           >
             {f.fileName}
           </a>
