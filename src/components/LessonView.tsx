@@ -115,8 +115,10 @@ export default function LessonView({
         const uploaded = await uploadFile(file);
         setFiles((prev) => [...prev, uploaded]);
       }
-    } catch {
-      setError("Не удалось загрузить файл");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Не удалось загрузить файл"
+      );
     } finally {
       setUploading(false);
     }
@@ -225,13 +227,16 @@ export default function LessonView({
           Файлов: {files.length}/{MAX_SUBMISSION_FILES}
         </p>
         {files.length < MAX_SUBMISSION_FILES && (
-          <input
-            type="file"
-            multiple
-            onChange={handleFileAdd}
-            disabled={uploading}
-            className="text-sm text-slate-900"
-          />
+          <>
+            <input
+              type="file"
+              multiple
+              onChange={handleFileAdd}
+              disabled={uploading}
+              className="text-sm text-slate-900"
+            />
+            <p className="text-xs text-slate-400">До 50 МБ на файл</p>
+          </>
         )}
         {uploading && (
           <p className="text-xs text-slate-500">Загрузка файла...</p>

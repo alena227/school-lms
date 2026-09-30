@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-export const MAX_UPLOAD_BYTES = 20 * 1024 * 1024; // 20MB
+export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024; // 50MB
 
 export type UploadTarget = {
   key: string;

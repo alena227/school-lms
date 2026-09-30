@@ -104,8 +104,10 @@ export default function LessonForm({
           setHomeworkFiles((prev) => [...prev, newFile]);
         }
       }
-    } catch {
-      setError("Не удалось загрузить файл");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Не удалось загрузить файл"
+      );
     } finally {
       setUploading(null);
     }
@@ -303,13 +305,16 @@ function FileSection({
         ))}
       </div>
       {!atLimit && (
-        <input
-          type="file"
-          multiple
-          onChange={onAdd}
-          className="mt-2 text-sm text-slate-900"
-          disabled={uploading}
-        />
+        <>
+          <input
+            type="file"
+            multiple
+            onChange={onAdd}
+            className="mt-2 text-sm text-slate-900"
+            disabled={uploading}
+          />
+          <p className="text-xs text-slate-400 mt-1">До 50 МБ на файл</p>
+        </>
       )}
       {uploading && (
         <p className="text-xs text-slate-500 mt-1">Загрузка файла...</p>
