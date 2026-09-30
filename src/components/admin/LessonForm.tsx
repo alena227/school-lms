@@ -224,7 +224,7 @@ export default function LessonForm({
 
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">
-          Ссылка на видео (YouTube или Rutube)
+          Ссылка на видео (YouTube, Rutube или Educontent)
         </label>
         <input
           value={youtubeUrl}

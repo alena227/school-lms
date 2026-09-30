@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
   if (!extractVideo(youtubeUrl)) {
     return NextResponse.json(
-      { error: "Не удалось распознать ссылку на видео (поддерживаются YouTube и Rutube)" },
+      { error: "Не удалось распознать ссылку на видео (поддерживаются YouTube, Rutube и Educontent)" },
       { status: 400 }
     );
   }
